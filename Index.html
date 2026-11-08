@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Real Chat</title>
+    <!-- CSS -->
+    <style>
+:root {
+    --primary-color: #00A878;
+    --primary-hover: #008f66;
+    --bg-dark: #121212;
+    --bg-card: #1E1E1E;
+    --bg-input: #2C2C2C;
+    --text-main: #FFFFFF;
+    --text-muted: #B0B0B0;
+    --border-color: #333333;
+    --danger: #FF4D4D;
+
+    --font-family: 'Inter', sans-serif;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --nav-height: 60px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    /* Remove blue highlight on mobile */
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: #000;
+    color: var(--text-main);
+    overflow: hidden;
+    height: 100vh;
+    /* Desktop centered layout background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: radial-gradient(circle at 50% 50%, #1a1a1a 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* --- Utilities --- */
+.hidden {
+    display: none !important;
+}
+
+.btn {
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+    width: 100%;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn.secondary {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn.danger {
+    background-color: var(--danger);
+    color: white;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Layout --- */
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Desktop / Tablet Device Simulator */
+@media (min-width: 768px) {
+    #app {
+        max-width: 420px;
+        /* Realistic Phone Width */
+        height: 85vh;
+        max-height: 900px;
+        border-radius: 36px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        border: 8px solid #2a2a2a;
+        margin: auto;
+    }
+
+    /* Scrollbar Styling for nicer desktop look */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+}
+
+/* Mobile Fullscreen Adjustments */
+@media (max-width: 767px) {
+    #app {
+        width: 100%;
+        height: 100%;
+        /* Fallback */
+        height: 100dvh;
+        /* Dynamic viewport height */
+        border: none;
+        border-radius: 0;
+    }
+
+    body {
+        background-image: none;
+        background-color: var(--bg-dark);
+    }
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-dark);
+    display: none;
+    flex-direction: column;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* --- Auth Screen --- */
+.auth-container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.auth-container h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.tagline {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-size: 16px;
+}
+
+input:focus,
+textarea:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: transparent;
+}
+
+.error-msg {
+    color: var(--danger);
+    margin-top: 1rem;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+/* --- Setup Screen --- */
+.setup-container {
+    padding: 2rem;
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4rem;
+}
+
+.avatar-preview {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    background: var(--bg-card);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Main Screen --- */
+.main-header {
+    background-color: var(--bg-card);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-id {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.tabs {
+    display: flex;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Contacts & Lists */
+.list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.list-item:hover {
+    background-color: var(--bg-input);
+}
+
+.list-info {
+    margin-left: 10px;
+    flex: 1;
+}
+
+.list-name {
+    font-weight: 600;
+}
+
+.list-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.unread-badge {
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+/* --- Chat Screen --- */
+.chat-header {
+    background-color: var(--bg-card);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.msg-me {
+    align-self: flex-end;
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.msg-other {
+    align-self: flex-start;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-area {
+    padding: 10px;
+    background-color: var(--bg-card);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#msg-input {
+    border-radius: 20px;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    padding: 5px 15px;
+    align-self: flex-start;
+    color: var(--text-muted);
+    font-size: 12px;
+    display: flex;
+    gap: 4px;
+}
+
+.typing-indicator span {
+    width: 4px;
+    height: 4px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+}
+
+/* --- Call Screen --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 100;
+}
+
+.call-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.remote-video-wrapper {
+    flex: 1;
+    background: #111;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Use cover for fullscreen feel, or contain if needed */
+}
+
+.local-video-wrapper {
+    position: absolute;
+    bottom: 100px;
+    right: 20px;
+    width: 100px;
+    height: 150px;
+    background: #333;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid white;
+    cursor: move;
+    z-index: 101;
+}
+
+.call-controls {
+    height: 80px;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.control-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: #444;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn.hangup {
+    background: var(--danger);
+}
+
+.control-btn.active {
+    background: white;
+    color: black;
+}
+
+/* Call Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    width: 90%;
+    max-width: 320px;
+}
+
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2rem;
+}
+
+.btn.accept {
+    background: var(--primary-color);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+}
+
+.btn.decline {
+    background: var(--danger);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+}
+    </style>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Icons (Phosphor Icons or Material Icons - using Google Material Icons for standard) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- App Container -->
+    <div id="app">
+
+        <!-- 1. Authentication Screen -->
+        <section id="auth-screen" class="screen active">
+            <div class="auth-container">
+                <h1>Real Chat</h1>
+                <p class="tagline">Connect simply.</p>
+                <div class="form-group">
+                    <input type="email" id="auth-email" placeholder="Email" autocomplete="current-email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+                </div>
+                <button id="btn-login" class="btn primary">Log In</button>
+                <button id="btn-signup" class="btn secondary">Sign Up</button>
+                <p id="auth-error" class="error-msg"></p>
+            </div>
+        </section>
+
+        <!-- 2. Profile Setup Screen -->
+        <section id="setup-screen" class="screen">
+            <div class="setup-container">
+                <h2>Create Profile</h2>
+                <div class="avatar-preview" id="setup-avatar-preview">
+                    <span>😎</span>
+                </div>
+                <div class="form-group">
+                    <label>Pick an Emoji</label>
+                    <input type="text" id="setup-emoji" placeholder="😎" maxlength="2" value="😎">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="setup-name" placeholder="Your Name" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <textarea id="setup-bio" placeholder="Bio (Optional)" maxlength="100"></textarea>
+                </div>
+                <button id="btn-finish-setup" class="btn primary">Get Started</button>
+            </div>
+        </section>
+
+        <!-- 3. Main Interface (Contacts/Chats List) -->
+        <section id="main-screen" class="screen">
+            <header class="main-header">
+                <div class="user-info">
+                    <img id="my-avatar" src="" alt="My Avatar" class="avatar-small">
+                    <div>
+                        <h3 id="my-name">User</h3>
+                        <span id="my-id" class="user-id">ID: ar-....</span>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="icon-btn" id="btn-add-friend"><span
+                            class="material-icons-round">person_add</span></button>
+                    <button class="icon-btn" id="btn-logout"><span class="material-icons-round">logout</span></button>
+                </div>
+            </header>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="chats">Chats</button>
+                <button class="tab-btn" data-tab="contacts">Contacts</button>
+                <button class="tab-btn" data-tab="calls">Calls</button>
+            </div>
+
+            <div class="tab-content" id="tab-chats">
+                <!-- Chat List Items will go here -->
+                <div class="empty-state">No active chats</div>
+            </div>
+
+            <div class="tab-content hidden" id="tab-contacts">
+                <!-- Contacts List -->
+                <div class="search-bar">
+                    <input type="text" id="friend-search-input" placeholder="Enter Friend ID (e.g. ar-1234)">
+                    <button id="btn-search-friend"><span class="material-icons-round">search</span></button>
+                </div>
+                <div id="contacts-list"></div>
+            </div>
+
+            <div class="tab-content hidden" id="tab-calls">
+                <!-- Call Logs -->
+                <div id="call-logs-list"></div>
+            </div>
+        </section>
+
+        <!-- 4. Chat Conversation View -->
+        <section id="chat-screen" class="screen">
+            <header class="chat-header">
+                <button class="icon-btn" id="btn-back-chat"><span
+                        class="material-icons-round">arrow_back</span></button>
+                <div class="chat-user-info">
+                    <img id="chat-avatar" src="" class="avatar-small">
+                    <div>
+                        <h4 id="chat-name">Friend Name</h4>
+                        <span id="chat-status" class="status-text">Offline</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-btn" id="btn-call-voice"><span class="material-icons-round">call</span></button>
+                    <button class="icon-btn" id="btn-call-video"><span
+                            class="material-icons-round">videocam</span></button>
+                    <button class="icon-btn" id="btn-chat-options"><span
+                            class="material-icons-round">more_vert</span></button>
+                </div>
+            </header>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages go here -->
+            </div>
+            <div class="typing-indicator hidden" id="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="msg-input" placeholder="Type a message...">
+                <button class="icon-btn send-btn" id="btn-send"><span class="material-icons-round">send</span></button>
+            </div>
+        </section>
+
+        <!-- 5. Call Overlay (WebRTC) -->
+        <div id="call-overlay" class="overlay hidden">
+            <div class="call-container">
+                <div class="remote-video-wrapper">
+                    <video id="remote-video" autoplay playsinline></video>
+                    <div class="call-status" id="call-status">Calling...</div>
+                </div>
+                <div class="local-video-wrapper" id="local-video-wrapper">
+                    <video id="local-video" autoplay playsinline muted></video>
+                </div>
+
+                <div class="call-controls">
+                    <button class="control-btn" id="btn-toggle-mic"><span
+                            class="material-icons-round">mic</span></button>
+                    <button class="control-btn" id="btn-toggle-cam"><span
+                            class="material-icons-round">videocam</span></button>
+                    <button class="control-btn hangup" id="btn-hangup"><span
+                            class="material-icons-round">call_end</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incoming Call Modal -->
+        <div id="incoming-call-modal" class="modal hidden">
+            <div class="modal-content">
+                <img id="caller-avatar" src="" class="avatar-large">
+                <h3 id="caller-name">Unknown</h3>
+                <p id="call-type-label">Incoming Video Call...</p>
+                <div class="modal-actions">
+                    <button class="btn decline" id="btn-decline"><span
+                            class="material-icons-round">call_end</span></button>
+                    <button class="btn accept" id="btn-accept"><span class="material-icons-round">call</span></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getDatabase, ref, set, get, push, remove, update, onValue, onChildAdded, onDisconnect, serverTimestamp, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+// ================= Firebase Config =================
+// Firebase Configuration
+// REPLACE MEASUREMENT ID, APP ID, ETC. WITH YOUR OWN FROM FIREBASE CONSOLE
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDw2YNHDwNaAI86JoO5Q3fhPmAYl4dg_XE",
+    authDomain: "chat-app-f3181.firebaseapp.com",
+    databaseURL: "https://chat-app-f3181-default-rtdb.firebaseio.com",
+    projectId: "chat-app-f3181",
+    storageBucket: "chat-app-f3181.firebasestorage.app",
+    messagingSenderId: "688834692735",
+    appId: "1:688834692735:web:f437f26b2b4da085f0a14a",
+    measurementId: "G-26KM87J9VR"
+};
+
+// ================= Firebase Init & Global State =================
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+
+// ================= UI =================
+function initUI() {
+    // Navigation Tabs
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Deactivate all
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            // Activate clicked
+            tab.classList.add('active');
+            document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+
+            if (tab.dataset.tab === 'contacts') {
+                loadContacts();
+            } else if (tab.dataset.tab === 'chats') {
+                loadChats();
+            } else if (tab.dataset.tab === 'calls') {
+                loadCallHistory();
+            }
+        });
+    });
+
+    // Initial Load
+    // If we start on chats tab (default), load them
+    if (document.querySelector('.tab-btn[data-tab="chats"]').classList.contains('active')) {
+        // Wait for auth... logic in app.js handles firing this via a check, but we can also trigger here 
+        // if we assume init is called after auth. But app.js calls init immediately.
+        // We'll rely on app.js calling loadChats() or user clicking tab.
+        // Better: Listen to auth state in app.js and call loadChats()
+    }
+
+    // Add Friend Button
+    document.getElementById('btn-add-friend').addEventListener('click', () => {
+        // Switch to contacts tab and focus search
+        document.querySelector('[data-tab="contacts"]').click();
+        document.getElementById('friend-search-input').focus();
+    });
+
+    // Back from Chat
+    document.getElementById('btn-back-chat').addEventListener('click', () => {
+        showScreen('main-screen');
+        loadChats(); // Refresh list to see new last message
+    });
+
+    // Toggle Mic/Cam
+    document.getElementById('btn-toggle-mic').addEventListener('click', (e) => {
+        e.currentTarget.classList.toggle('active');
+    });
+    document.getElementById('btn-toggle-cam').addEventListener('click', (e) => {
+        e.currentTarget.classList.toggle('active');
+    });
+}
+
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+function updateUserInfo(profile) {
+    document.getElementById('my-name').textContent = profile.name;
+    document.getElementById('my-id').textContent = 'ID: ' + profile.userId;
+    document.getElementById('my-avatar').src = profile.dpUrl;
+
+    // Start listening for incoming calls once we know we are logged in and have profile
+    listenForIncomingCalls(auth.currentUser.uid);
+    // Also load chats initially
+    loadChats();
+}
+
+function renderContacts(contacts) {
+    const list = document.getElementById('contacts-list');
+    list.innerHTML = '';
+
+    contacts.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        // Check Status ID
+        const statusId = `status-${c.uid}`;
+
+        item.innerHTML = `
+            <img src="${c.dpUrl}" class="avatar-small">
+            <div class="list-info">
+                <div class="list-name">${c.name}</div>
+                <div class="list-detail" id="${statusId}">Offline</div>
+            </div>
+        `;
+
+        // Dynamic Status Listener
+        const statusRef = ref(db, `status/${c.uid}`);
+        onValue(statusRef, (snap) => {
+            const val = snap.val();
+            const el = document.getElementById(statusId);
+            if (el) {
+                if (val && val.state === 'online') {
+                    el.textContent = 'Online';
+                    el.style.color = 'var(--primary-color)';
+                } else {
+                    el.textContent = 'Offline';
+                    el.style.color = 'var(--text-muted)';
+                }
+            }
+        });
+
+        item.addEventListener('click', () => openChat(c));
+        list.appendChild(item);
+    });
+}
+
+function renderChatList(chats) {
+    const list = document.getElementById('tab-chats');
+    list.innerHTML = '';
+
+    if (chats.length === 0) {
+        list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:#666;">No active chats.<br>Go to Contacts to start one!</div>';
+        return;
+    }
+
+    chats.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+            <img src="${c.otherDP || 'default_avatar.png'}" class="avatar-small">
+            <div class="list-info">
+                <div class="list-name">${c.otherName || 'User'}</div>
+                <div class="list-detail">${c.lastMessage}</div>
+            </div>
+        `;
+        item.addEventListener('click', () => {
+            // Mock contact object to open chat
+            const contact = {
+                uid: c.otherUid,
+                name: c.otherName,
+                dpUrl: c.otherDP
+            };
+            openChat(contact);
+        });
+        list.appendChild(item);
+    });
+}
+
+function renderCallLog(logs) {
+    const list = document.getElementById('call-logs-list');
+    list.innerHTML = '';
+
+    if (!logs || logs.length === 0) {
+        list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:#666;">No call history.</div>';
+        return;
+    }
+
+    logs.forEach(log => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+
+        const isIncoming = log.type === 'incoming';
+        const icon = isIncoming ? 'call_received' : 'call_made';
+        const iconColor = isIncoming ? 'var(--primary-color)' : '#999';
+
+        // Format timestamp if available
+        let timeStr = '';
+        if (log.timestamp) {
+            const date = new Date(log.timestamp);
+            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        item.innerHTML = `
+            <img src="${log.otherDP || 'default_avatar.png'}" class="avatar-small">
+            <div class="list-info">
+                <div class="list-name" style="color:${log.mode === 'video' ? '#E1BEE7' : 'inherit'}">${log.otherName || 'Unknown'}</div>
+                <div class="list-detail" style="display:flex;align-items:center;gap:4px;">
+                   <span class="material-icons-round" style="font-size:14px;color:${iconColor}">${icon}</span>
+                   <span>${timeStr}</span> 
+                   <span style="margin-left:auto;font-size:10px;padding:2px 6px;background:#333;border-radius:4px;">${log.mode.toUpperCase()}</span>
+                </div>
+            </div>
+        `;
+        // Make clickable to call back?
+        item.addEventListener('click', () => {
+            // For now just alert, or start call if we had logic
+            // To start call we need full contact object which we might not have fully
+            // check if we have enough info
+            if (log.otherUid) {
+                const contact = { uid: log.otherUid, name: log.otherName, dpUrl: log.otherDP };
+                openChat(contact);
+                // Redirects to chat where they can call again
+            }
+        });
+        list.appendChild(item);
+    });
+}
+
+function updateChatStatus(status) {
+    const el = document.getElementById('chat-status');
+    if (status && status.state === 'online') {
+        el.textContent = 'Online';
+        el.style.color = 'var(--primary-color)';
+    } else {
+        el.textContent = 'Offline'; // Could add 'Last seen...'
+        el.style.color = 'var(--text-muted)';
+    }
+}
+
+function openChatWindow(contact) {
+    showScreen('chat-screen');
+    document.getElementById('chat-name').textContent = contact.name;
+    document.getElementById('chat-avatar').src = contact.dpUrl;
+    document.getElementById('chat-messages').innerHTML = ''; // Clear old
+    document.getElementById('chat-status').textContent = 'Connecting...';
+}
+
+function clearMessages() {
+    const container = document.getElementById('chat-messages');
+    container.innerHTML = '';
+}
+
+function appendMessage(msg) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = `message ${msg.sender === auth.currentUser.uid ? 'msg-me' : 'msg-other'}`;
+    div.textContent = msg.text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function renderMessages(messages) {
+    // Fallback support if needed, but we typically won't use this with onChildAdded
+    clearMessages();
+    messages.forEach(appendMessage);
+}
+
+function toggleTyping(isTyping) {
+    const el = document.getElementById('typing-indicator');
+    if (isTyping) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+}
+
+function hideIncomingCallModal() {
+    document.getElementById('incoming-call-modal').classList.add('hidden');
+}
+
+// ================= Auth =================
+function initAuth() {
+    // Login
+    document.getElementById('btn-login').addEventListener('click', async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-password').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            document.getElementById('auth-error').textContent = e.message;
+        }
+    });
+
+    // Signup
+    document.getElementById('btn-signup').addEventListener('click', async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-password').value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, pass);
+            // Profile setup screen will be shown by onAuthStateChanged -> checkProfile
+        } catch (e) {
+            document.getElementById('auth-error').textContent = e.message;
+        }
+    });
+
+    // Logout
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        signOut(auth);
+    });
+
+    // Setup Profile
+    document.getElementById('btn-finish-setup').addEventListener('click', saveProfile);
+
+    // Emoji input handler
+    document.getElementById('setup-emoji').addEventListener('input', (e) => {
+        document.querySelector('#setup-avatar-preview span').textContent = e.target.value || '😎';
+    });
+}
+
+async function checkProfileAndRedirect(user) {
+    const userRef = ref(db, 'users/' + user.uid);
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+        // User has profile
+        setupPresence(user.uid);
+        showScreen('main-screen');
+        updateUserInfo(snapshot.val());
+    } else {
+        // Go to setup
+        showScreen('setup-screen');
+    }
+}
+
+async function saveProfile() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const name = document.getElementById('setup-name').value;
+    const emoji = document.getElementById('setup-emoji').value || '😎';
+    const bio = document.getElementById('setup-bio').value;
+
+    if (!name) {
+        alert("Name is required");
+        return;
+    }
+
+    // Generate ID
+    const uniqueId = 'ar-' + Math.floor(1000 + Math.random() * 9000);
+    // Generate DP URL (SVG)
+    const dpUrl = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232C2C2C"/><text x="50" y="50" font-family="Arial" font-size="50" text-anchor="middle" dy=".3em">${emoji}</text></svg>`;
+
+    const profileData = {
+        name,
+        bio,
+        userId: uniqueId,
+        dpUrl,
+        emoji,
+        email: user.email
+    };
+
+    try {
+        await set(ref(db, 'users/' + user.uid), profileData);
+        // Also map userId to uid for searching
+        await set(ref(db, 'userIds/' + uniqueId), user.uid);
+
+        setupPresence(user.uid);
+        showScreen('main-screen');
+        updateUserInfo(profileData);
+    } catch (e) {
+        console.error(e);
+        alert("Error saving profile");
+    }
+}
+
+function setupPresence(uid) {
+    const connectedRef = ref(db, '.info/connected');
+    const statusRef = ref(db, 'status/' + uid);
+
+    // Listen to the connection state
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            onDisconnect(statusRef).set({ state: 'offline', last_changed: serverTimestamp() });
+            set(statusRef, { state: 'online', last_changed: serverTimestamp() });
+        }
+    });
+}
+
+// ================= Chat =================
+let currentChatId = null;
+let currentChatUser = null;
+
+// Unsubscribers
+let chatsUnsub = null;
+let contactsUnsub = null;
+let msgsUnsub = null;
+let typingUnsub = null;
+let statusUnsub = null;
+
+function initChat() {
+    // Send Message
+    document.getElementById('btn-send').addEventListener('click', sendMessage);
+    document.getElementById('msg-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Typing Inteval
+    const msgInput = document.getElementById('msg-input');
+    let typingTimeout = null;
+    msgInput.addEventListener('input', () => {
+        if (currentChatId) {
+            const typingRef = ref(db, `typing/${currentChatId}/${auth.currentUser.uid}`);
+            set(typingRef, true);
+
+            if (typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                set(typingRef, null);
+            }, 3000);
+        }
+    });
+
+    // Add Friend
+    document.getElementById('btn-search-friend').addEventListener('click', searchFriend);
+}
+
+// --- Chats List (Main Tab) ---
+function loadChats() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Listen to userChats/{uid}
+    if (chatsUnsub) chatsUnsub();
+    const chatsRef = query(ref(db, `userChats/${user.uid}`), orderByChild('timestamp'));
+    chatsUnsub = onValue(chatsRef, (snapshot) => {
+        const chats = [];
+        snapshot.forEach(child => {
+            chats.push({ chatId: child.key, ...child.val() });
+        });
+        // Reverse to show newest first (since Firebase orders ascending)
+        renderChatList(chats.reverse());
+    });
+}
+
+// --- Contacts List ---
+function loadContacts() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    if (contactsUnsub) contactsUnsub();
+    const contactsRef = ref(db, `contacts/${user.uid}`);
+    contactsUnsub = onValue(contactsRef, (snapshot) => {
+        const contacts = [];
+        snapshot.forEach(child => {
+            contacts.push({ uid: child.key, ...child.val() });
+        });
+        renderContacts(contacts);
+    });
+}
+
+function openChat(contact) {
+    currentChatUser = contact;
+    const uid1 = auth.currentUser.uid;
+    const uid2 = contact.uid;
+    currentChatId = uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; // Deterministic Chat ID
+
+    console.log("Opening chat:", currentChatId); // Debug
+    openChatWindow(contact);
+    listenToMessages(currentChatId);
+    listenToTyping(currentChatId, contact.uid);
+    listenToStatus(contact.uid);
+
+    // Reset unread
+    set(ref(db, `unreadCounts/${uid1}/${currentChatId}`), 0);
+}
+
+let msgListenerOff = null; // Deprecated, using msgsUnsub
+function listenToMessages(chatId) {
+    if (msgsUnsub) msgsUnsub();
+
+    clearMessages(); // Clear existing UI before listening to new chat
+
+    // Increase limit to 100 or remove for now to ensure all are seen
+    const msgsRef = query(ref(db, `messages/${chatId}`), limitToLast(100));
+
+    // onChildAdded fires for existing children matching the query, then new ones
+    msgsUnsub = onChildAdded(msgsRef, (snapshot) => {
+        const msg = snapshot.val();
+        appendMessage(msg);
+    });
+}
+
+function listenToTyping(chatId, otherUid) {
+    if (typingUnsub) typingUnsub();
+    const typingRef = ref(db, `typing/${chatId}/${otherUid}`);
+    typingUnsub = onValue(typingRef, (snap) => {
+        toggleTyping(snap.val());
+    });
+}
+
+function listenToStatus(uid) {
+    if (statusUnsub) statusUnsub();
+    const statusRef = ref(db, `status/${uid}`);
+    statusUnsub = onValue(statusRef, (snap) => {
+        const val = snap.val();
+        updateChatStatus(val);
+    });
+}
+
+async function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text || !currentChatId) return;
+
+    input.value = '';
+
+    const timestamp = serverTimestamp();
+    const msgData = {
+        sender: auth.currentUser.uid,
+        text: text,
+        timestamp: timestamp
+    };
+
+    // 1. Push Message
+    await push(ref(db, `messages/${currentChatId}`), msgData);
+
+    // 2. Update userChats for ME
+    const myChatRef = ref(db, `userChats/${auth.currentUser.uid}/${currentChatId}`);
+    update(myChatRef, {
+        lastMessage: "You: " + text,
+        timestamp: timestamp,
+        otherUid: currentChatUser.uid,
+        otherName: currentChatUser.name, // Snapshot name for speed
+        otherDP: currentChatUser.dpUrl
+    });
+
+    // 3. Update userChats for THE OTHER USER
+    const otherChatRef = ref(db, `userChats/${currentChatUser.uid}/${currentChatId}`);
+    update(otherChatRef, {
+        lastMessage: text,
+        timestamp: timestamp,
+        otherUid: auth.currentUser.uid,
+        otherName: auth.currentUser.displayName || "Friend", // Ideally fetch profile, but for now fallback
+        otherDP: document.getElementById('my-avatar').src // Hacky but works for client-side
+    });
+}
+
+async function searchFriend() {
+    const idInput = document.getElementById('friend-search-input').value.trim();
+    if (!idInput) return;
+
+    // Find uid from userId
+    const mappingRef = ref(db, `userIds/${idInput}`);
+    const snap = await get(mappingRef);
+    if (snap.exists()) {
+        const friendUid = snap.val();
+        // Get friend profile
+        const friendProfileRef = ref(db, `users/${friendUid}`);
+        const profileSnap = await get(friendProfileRef);
+
+        if (profileSnap.exists()) {
+            // Add to my contacts
+            const myContactsRef = ref(db, `contacts/${auth.currentUser.uid}/${friendUid}`);
+            await set(myContactsRef, profileSnap.val());
+
+            alert("Friend added!");
+            document.getElementById('friend-search-input').value = '';
+        }
+    } else {
+        alert("User not found");
+    }
+}
+
+// ================= Calls (WebRTC) =================
+let localStream;
+let remoteStream;
+let peerConnection;
+let currentCallRef;
+let incomingCallData = null;
+
+const rtcConfig = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' }
+    ]
+};
+
+// Tone.js Synth for Ringtone
+let synth;
+let ringLoop;
+
+function initCall() {
+    document.getElementById('btn-call-voice').addEventListener('click', () => startCall('voice'));
+    document.getElementById('btn-call-video').addEventListener('click', () => startCall('video'));
+
+    document.getElementById('btn-hangup').addEventListener('click', endCall);
+    document.getElementById('btn-decline').addEventListener('click', declineCall);
+    document.getElementById('btn-accept').addEventListener('click', acceptCall);
+
+    // Listen for incoming calls
+    // const user = auth.currentUser; // Might differ if init called early, check in listen loop
+}
+
+function loadCallHistory() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const historyRef = query(ref(db, `callHistory/${user.uid}`), orderByChild('timestamp'), limitToLast(20));
+    onValue(historyRef, (snapshot) => {
+        const logs = [];
+        snapshot.forEach(child => {
+            logs.push(child.val());
+        });
+        renderCallLog(logs.reverse());
+    });
+}
+
+function addToHistory(callData) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newLogRef = push(ref(db, `callHistory/${user.uid}`));
+    set(newLogRef, {
+        ...callData,
+        timestamp: serverTimestamp()
+    });
+}
+
+function listenForIncomingCalls(uid) {
+    // Listen to calls/{callId} where callee == uid
+    // Since Firebase doesn't support complex querying easily without index, 
+    // we'll use a `incoming_calls/{uid}` node for simpler notification
+
+    // Alternative: We push to `calls` and have an `incoming_calls/{uid}` listener
+    const incomingRef = ref(db, `incoming_calls/${uid}`);
+    onValue(incomingRef, (snapshot) => {
+        const call = snapshot.val();
+        if (call) {
+            incomingCallData = call; // { callId, callerUid, callerName, type, ... }
+            showIncomingCallUI(call);
+            playRingtone();
+        } else {
+            // Call ended or picked up elsewhere
+            hideIncomingCallModal();
+            stopRingtone();
+        }
+    });
+}
+
+async function startCall(type) {
+    if (!currentChatUser) return;
+
+    // UI Setup
+    showScreen('call-overlay'); // Technically overlay is over everything
+    document.getElementById('call-overlay').classList.remove('hidden');
+
+    // Get Stream
+    try {
+        const constraints = {
+            audio: true,
+            video: type === 'video'
+        };
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('local-video').srcObject = localStream;
+
+        // Create Call Document
+        const callId = push(ref(db, 'calls')).key;
+        currentCallRef = ref(db, `calls/${callId}`);
+
+        // Notify Callee
+        const calleeRef = ref(db, `incoming_calls/${currentChatUser.uid}`);
+        await set(calleeRef, {
+            callId,
+            callerUid: auth.currentUser.uid,
+            callerName: auth.currentUser.displayName || "Unknown",
+            type
+        });
+
+        // Log Outgoing Call
+        addToHistory({
+            type: 'outgoing',
+            mode: type, // video or voice
+            otherName: currentChatUser.name,
+            otherUid: currentChatUser.uid,
+            otherDP: currentChatUser.dpUrl
+        });
+
+        // Init Peer Connection
+        peerConnection = new RTCPeerConnection(rtcConfig);
+
+        // Add Tracks
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+
+        // Candidate Handling
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                push(ref(db, `calls/${callId}/callerCandidates`), event.candidate.toJSON());
+            }
+        };
+
+        // Remote Stream
+        peerConnection.ontrack = (event) => {
+            const stream = event.streams[0];
+            if (!remoteStream) {
+                remoteStream = stream;
+                document.getElementById('remote-video').srcObject = remoteStream;
+            }
+        };
+
+        // Create Offer
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+
+        await update(currentCallRef, { offer: { type: offer.type, sdp: offer.sdp } });
+
+        // Listen for Answer
+        onValue(ref(db, `calls/${callId}/answer`), (snap) => {
+            const data = snap.val();
+            if (!peerConnection.currentRemoteDescription && data) {
+                const answer = new RTCSessionDescription(data);
+                peerConnection.setRemoteDescription(answer);
+            }
+        });
+
+        // Listen for Remote Candidates (Callee)
+        onValue(ref(db, `calls/${callId}/calleeCandidates`), (snap) => {
+            snap.forEach(child => {
+                peerConnection.addIceCandidate(new RTCIceCandidate(child.val()));
+            });
+        });
+
+        // Listen for End Call
+        onValue(ref(db, `calls/${callId}/status`), (snap) => {
+            if (snap.val() === 'ended') {
+                cleanupCall();
+            }
+        });
+
+    } catch (e) {
+        console.error("Error starting call:", e);
+        alert("Could not start call: " + e.message);
+        cleanupCall();
+    }
+}
+
+async function acceptCall() {
+    stopRingtone();
+    hideIncomingCallModal();
+    document.getElementById('call-overlay').classList.remove('hidden');
+
+    const callId = incomingCallData.callId;
+
+    // Log Incoming Call
+    addToHistory({
+        type: 'incoming',
+        mode: incomingCallData.type,
+        otherName: incomingCallData.callerName,
+        otherUid: incomingCallData.callerUid,
+        otherDP: 'default_avatar.png' // or fetch profile if possible
+    });
+
+    currentCallRef = ref(db, `calls/${callId}`);
+
+    // Get Stream
+    try {
+        // Assume video for now or check type
+        const constraints = {
+            audio: true,
+            video: incomingCallData.type === 'video'
+        };
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('local-video').srcObject = localStream;
+
+        peerConnection = new RTCPeerConnection(rtcConfig);
+
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                push(ref(db, `calls/${callId}/calleeCandidates`), event.candidate.toJSON());
+            }
+        };
+
+        peerConnection.ontrack = (event) => {
+            document.getElementById('remote-video').srcObject = event.streams[0];
+        };
+
+        // Get Offer
+        const snap = await get(ref(db, `calls/${callId}/offer`));
+        const offer = snap.val();
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+
+        await update(currentCallRef, { answer: { type: answer.type, sdp: answer.sdp } });
+
+        // Listen for Remote Candidates (Caller)
+        onValue(ref(db, `calls/${callId}/callerCandidates`), (snap) => {
+            snap.forEach(child => {
+                peerConnection.addIceCandidate(new RTCIceCandidate(child.val()));
+            });
+        });
+
+        // Remove incoming notification so it stops ringing on other devices
+        remove(ref(db, `incoming_calls/${auth.currentUser.uid}`));
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function declineCall() {
+    stopRingtone();
+    hideIncomingCallModal();
+    // Remove incoming call node
+    if (auth.currentUser) {
+        remove(ref(db, `incoming_calls/${auth.currentUser.uid}`));
+    }
+}
+
+function endCall() {
+    if (currentCallRef) {
+        update(currentCallRef, { status: 'ended' });
+    }
+    // Also remove incoming call if we are the caller cancelling
+    if (currentChatUser) {
+        // We might need to store who we are calling to cancel the request
+        // For simple MVP: omit complex cancel logic, rely on 'ended' status or manual decline
+    }
+    cleanupCall();
+}
+
+function cleanupCall() {
+    document.getElementById('call-overlay').classList.add('hidden');
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peerConnection) {
+        peerConnection.close();
+    }
+    localStream = null;
+    peerConnection = null;
+    currentCallRef = null;
+}
+
+// Tone.js Ringtone
+async function playRingtone() {
+    await Tone.start();
+    synth = new Tone.Synth().toDestination();
+    ringLoop = new Tone.Loop(time => {
+        synth.triggerAttackRelease("C5", "8n", time);
+        synth.triggerAttackRelease("E5", "8n", time + 0.2);
+    }, "1n").start(0);
+    Tone.Transport.start();
+}
+
+function stopRingtone() {
+    if (ringLoop) {
+        ringLoop.stop();
+        ringLoop.dispose();
+    }
+    if (synth) synth.dispose();
+    Tone.Transport.stop();
+}
+
+function showIncomingCallUI(call) {
+    document.getElementById('incoming-call-modal').classList.remove('hidden');
+    document.getElementById('caller-name').textContent = call.callerName || "Unknown";
+    document.getElementById('call-type-label').textContent = `Incoming ${call.type} Call...`;
+    // Would fetch avatar if we had it
+}
+
+// ================= Bootstrap =================
+document.addEventListener('DOMContentLoaded', () => {
+    // Check Auth State
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            // Auth module handles profile completion check
+            checkProfileAndRedirect(user);
+        } else {
+            currentUser = null;
+            showScreen('auth-screen');
+        }
+    });
+
+    // Initialize Modules
+    initAuth();
+    initChat();
+    initCall();
+    initUI();
+});
+    </script>
+
+    <!-- Environment Check Script -->
+    <script>
+        window.addEventListener('load', () => {
+            if (window.location.protocol === 'file:') {
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;text-align:center;padding:20px;';
+                errorDiv.innerHTML = `
+                    <h2 style="color:#ff4d4d;margin-bottom:10px;">⚠️ Setup Required</h2>
+                    <p style="font-size:18px;line-height:1.5;">You are opening this file directly.</p>
+                    <p style="font-size:16px;color:#aaa;">Real Chat uses Firebase, which only works over http/https. Please run it on a local server or host it online.</p>
+                    <div style="background:#333;padding:15px;border-radius:8px;margin-top:20px;text-align:left;">
+                        <strong>Option 1 (VS Code):</strong> Right-click this file -> "Open with Live Server"<br><br>
+                        <strong>Option 2 (Python):</strong> Run <code style="background:#000;padding:2px 5px;">python -m http.server</code> in this folder
+                    </div>
+                `;
+                document.body.appendChild(errorDiv);
+            }
+        });
+    </script>
+</body>
+
+</html>
